@@ -1,41 +1,41 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
+const twoFaSchema = new mongoose.Schema({
+  token: {
     type: String,
     required: true,
     unique: true,
   },
-  password: {
+  code: {
     type: String,
     required: true,
   },
-  phoneNumber: {
+  validUntil: {
+    type: Date,
+    required: true,
+  },
+  action: {
     type: String,
     required: true,
   },
 });
 
-userSchema.pre('save', async function (next) {
-  const user = this;
+twoFaSchema.pre('save', async function (next) {
+  const twoFa = this;
 
   // Only hash the password if it has been modified (or is new)
-  if (!user.isModified('password')) {
+  if (!twoFa.isModified('code')) {
     return next();
   }
 
   try {
     // Generate a salt and hash the password
     const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(user.password, salt);
+    const hash = await bcrypt.hash(twoFa.code, salt);
 
     // Replace the plaintext password with the hash
-    user.password = hash;
+    twoFa.code = hash;
 
     next();
   } catch (err) {
@@ -43,5 +43,5 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-export const User = mongoose.model('User', userSchema);
-export type User = typeof User;
+export const TwoFa = mongoose.model('TwoFa', twoFaSchema);
+export type TwoFa = typeof TwoFa;

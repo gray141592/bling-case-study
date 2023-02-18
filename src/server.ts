@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import { ApplicationError } from './errors';
 import connectDb from './db';
 import { router } from "./routes";
 
@@ -13,9 +14,13 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use(router);
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  console.log('Proso brzi voz');
+  console.error(error.message);
+  if (error instanceof ApplicationError) {
+    res.status(error.statusCode).send({ message: error.message, datails: error.details });
+  }
+  res.status(502).send({ message: error.message })
 });
 
 let server;
